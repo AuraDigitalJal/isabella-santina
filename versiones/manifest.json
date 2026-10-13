@@ -1,0 +1,23 @@
+{
+  "project": "Isabella y Santina — Primera Comunión y Bautizo",
+  "url": "https://auradigitaljal.com/isabella-santina/",
+  "active": "minimal",
+  "versions": {
+    "creada": {
+      "portada": "assets/portada-v2.jpg",
+      "fondo": "assets/fondo-v2.jpg",
+      "papas_padrinos": "assets/papas-padrinos-v2.jpg",
+      "whatsapp": "assets/whatsapp-preview-floral.jpg",
+      "html_backup": "versiones/creada-index.html.txt"
+    },
+    "minimal": {
+      "portada": "assets/portada-minimal.jpg",
+      "fondo": "assets/fondo-minimal.jpg",
+      "papas_padrinos": "assets/papas-padrinos-minimal.jpg",
+      "whatsapp": "assets/whatsapp-preview-minimal.jpg",
+      "html_backup": "versiones/minimal-index.html.txt"
+    }
+  },
+  "switching": "Update root index.html with the desired version's saved HTML snapshot; keep both sets of image assets. Same public link for either version.",
+  "saved_from_commit": "df7fb80c6a215e4b0166137bcbfaeb621412524d"
+}
