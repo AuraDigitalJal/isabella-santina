@@ -707,18 +707,27 @@ body.theme-baptism_layers .bl-menu .bl-screen-footer{margin-top:clamp(4px,.9dvh,
   const screens=[...stage.querySelectorAll('[data-bl-screen]')];
   const audio=document.querySelector('audio'),toggle=stage.querySelector('.bl-audio');
   const syncMusic=()=>{if(!toggle||!audio)return;toggle.textContent=audio.paused?'♪':'Ⅱ';toggle.setAttribute('aria-label',audio.paused?'Reproducir música':'Pausar música');toggle.setAttribute('aria-pressed',String(!audio.paused))};
-  // Intenta reproducir desde la portada. Algunos navegadores requieren un primer gesto.
+  // Inicio de sonido inmediato cuando el navegador lo permite; recuperación tras carga o gesto.
   let pausedByGuest=false;
   const tryStartMusic=()=>{
    if(!audio||pausedByGuest||!audio.paused)return;
-   audio.play().catch(()=>{/* Autoplay con sonido bloqueado hasta interacción */});
+   const result=audio.play();
+   if(result&&typeof result.catch==='function')result.catch(()=>{/* Requiere permiso o interacción del navegador */});
   };
   if(audio){
    audio.autoplay=true;
+   audio.preload='auto';
    ['play','pause','ended'].forEach(name=>audio.addEventListener(name,syncMusic));
+   // Algunos navegadores rechazan play() mientras el archivo aún no está listo.
+   ['loadeddata','canplay'].forEach(name=>audio.addEventListener(name,tryStartMusic,{once:true}));
+   window.addEventListener('load',tryStartMusic,{once:true});
+   window.addEventListener('pageshow',tryStartMusic);
+   document.addEventListener('visibilitychange',()=>{if(!document.hidden)tryStartMusic()});
+   // Safari/iOS puede autorizar sonido al soltar el primer toque, no al presionarlo.
+   ['pointerdown','touchend','click','keydown'].forEach(name=>
+     document.addEventListener(name,()=>{if(!pausedByGuest)tryStartMusic()},{capture:true})
+   );
    tryStartMusic();
-   const unlock=()=>{if(!pausedByGuest)tryStartMusic()};
-   ['pointerdown','touchstart','keydown'].forEach(event=>document.addEventListener(event,unlock,{once:true,capture:true}));
   }
   const navigate=target=>{
    if(target==='cover'){stage.hidden=true;hero.hidden=false;syncMusic();return;}
