@@ -820,6 +820,8 @@ body.theme-baptism_layers .bl-screen:not(.bl-menu) .bl-confirm-whatsapp-icon{
    if(e.target.closest('.bl-audio')&&audio){if(audio.paused){pausedByGuest=false;tryStartMusic();}else{pausedByGuest=true;audio.pause();}}
   },true);
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!stage.hidden&&!document.querySelector('.gallery-lightbox.open'))navigate('menu')});
+  // Acceso directo desde PDF o enlace especial; el enlace normal conserva la portada.
+  if(new URLSearchParams(window.location.search).get('vista')==='menu')navigate('menu');
   syncMusic();
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
