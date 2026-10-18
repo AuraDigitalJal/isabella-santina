@@ -1,0 +1,59 @@
+name: Corregir apellido en portada
+on:
+  push:
+    paths:
+      - .github/workflows/corregir-apellido-portada.yml
+permissions:
+  contents: write
+jobs:
+  portada:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar herramientas de imagen
+        run: python -m pip install --quiet pillow numpy
+      - name: Corregir apellido sin rehacer el diseño
+        run: |
+          python - <<'PYCODE'
+          from pathlib import Path
+          from PIL import Image
+          import numpy as np
+          path=Path('assets/portada-minimal.jpg')
+          img=np.array(Image.open(path).convert('RGB')).astype(np.float32)
+          height,width=img.shape[:2]
+          if width!=941 or height!=1672:
+              raise ValueError(f'Dimensiones inesperadas de portada: {width}x{height}; no se modifica la imagen')
+          x1,x2=342,599
+          y1,y2=1001,1038
+          for y in range(y1,y2+1):
+              t=(y-y1+1)/(y2-y1+2)
+              img[y,x1:x2,:]=(1-t)*img[y1-1,x1:x2,:]+t*img[y2+1,x1:x2,:]
+          sx1,sx2=295,648
+          sy1,sy2=622,650
+          displacement=383
+          source=img[sy1:sy2,sx1:sx2,:].copy()
+          luminance=source.mean(axis=2)
+          alpha=np.clip((230-luminance)/155,0,1)
+          alpha[luminance>225]=0
+          color=np.array([67,54,43],dtype=np.float32)
+          target=img[sy1+displacement:sy2+displacement,sx1:sx2,:]
+          img[sy1+displacement:sy2+displacement,sx1:sx2,:]=color*alpha[:,:,None]+target*(1-alpha[:,:,None])
+          Image.fromarray(np.uint8(np.clip(img,0,255))).save(path,format='JPEG',quality=94,subsampling=0,optimize=True)
+          html_path=Path('index.html')
+          html=html_path.read_text(encoding='utf-8')
+          old='assets/portada-minimal.jpg?v=mv6au6lb'
+          new='assets/portada-minimal.jpg?v=navarrete-chavez-20261017'
+          if old not in html:
+              raise ValueError('La referencia a portada cambió: no se fuerza una actualización insegura')
+          html_path.write_text(html.replace(old,new),encoding='utf-8')
+          PYCODE
+      - name: Publicar imagen corregida
+        run: |
+          git config user.name 'Aura Digital - Portada'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/portada-minimal.jpg index.html
+          git commit -m 'Corregir apellido de Santina a Navarrete Chávez en portada'
+          git push
